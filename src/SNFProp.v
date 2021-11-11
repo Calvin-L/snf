@@ -7,6 +7,8 @@ Require Import IndefiniteDescription.
 Require Import Inhabited.
 Require Import Context.
 Require Import PNFProp.
+Require Import MiscFacts.
+
 
 Inductive SNFBody : TypeContext -> Type :=
   | SNFOpaque : forall {env}, (Valuation env -> Prop) -> SNFBody env
@@ -55,14 +57,6 @@ Fixpoint universalize_forall {env} (P : SNFForall env) (var_index : nat) {struct
   | SNFForall_forall T body => SNFForall_forall T (universalize_forall body (S var_index))
   end.
 
-Fixpoint universalize_exists {env} (P : SNFExists env) (var_index : nat) {struct P} : SNFExists (without env var_index) :=
-  match P in SNFExists X return SNFExists (without X var_index) with
-  | SNFExists_body body => SNFExists_body (universalize_forall body var_index)
-  | @SNFExists_exists env U body =>
-    let body' := universalize_exists body (S var_index) : SNFExists (TypeCons U (without env var_index)) in
-    SNFExists_exists U body'
-  end.
-
 Definition SNFBody_xform_free {env env'} (p : SNFBody env) (f : Valuation env' -> Valuation env) : SNFBody env' :=
   match p in SNFBody E return (Valuation env' -> Valuation E) -> SNFBody env' with
   | SNFOpaque body => fun f => SNFOpaque (fun v => body (f v))
@@ -73,26 +67,6 @@ Fixpoint SNFForall_xform_free {env env'} (p : SNFForall env) (f : Valuation env'
   | SNFForall_body body => fun f => SNFForall_body (SNFBody_xform_free body f)
   | SNFForall_forall T body => fun f => SNFForall_forall T (SNFForall_xform_free body (fun v => ValuationCons (head v) (f (tail v))))
   end f.
-
-Fixpoint SNFExists_xform_free {env env'} (p : SNFExists env) (f : Valuation env' -> Valuation env) : SNFExists env' :=
-  match p in SNFExists E return (Valuation env' -> Valuation E) -> SNFExists env' with
-  | SNFExists_body body => fun f => SNFExists_body (SNFForall_xform_free body f)
-  | SNFExists_exists T body => fun f => SNFExists_exists T (SNFExists_xform_free body (fun v => ValuationCons (head v) (f (tail v))))
-  end f.
-
-Fixpoint generalize_over {env} (P : SNFExists env) (var_index : nat) {struct P} : SNFExists env :=
-  match P in SNFExists X return SNFExists X with
-  | SNFExists_body body => SNFExists_body body
-  | @SNFExists_exists env U body =>
-    let T := nth env var_index in
-    let body' := generalize_over body (S var_index) : SNFExists (TypeCons U env) in
-    let body'' := SNFExists_xform_free body' (fun (vals : Valuation (TypeCons (T -> U) env)) => ValuationCons ((venv_nth vals 0) (venv_nth (tail vals) var_index)) (tail vals)) : SNFExists (TypeCons (T -> U) env) in
-    @SNFExists_exists env (T -> U) body''
-  end.
-
-Definition universalize {T env} (P : SNFExists (TypeCons T env)) : SNFExists env :=
-  (* relies on convertability of `without (TypeCons T env) 0` to `env`. *)
-  universalize_exists P 0.
 
 Fixpoint functionalize_wrt (env : TypeContext) (var_index : nat) {struct var_index} : TypeContext :=
   match var_index with
@@ -135,12 +109,11 @@ Fixpoint push_forall_under_exists {env} (P : SNFExists env) (var_index : nat) {s
     SNFExists_exists (T -> U) body'
   end.
 
-Fixpoint PNFProp_to_SNFExists {env} (P : PNFProp env) : SNFExists env :=
+Fixpoint snf {env} (P : PNFProp env) : SNFExists env :=
   match P with
   | PNFOpaque A => SNFExists_body (SNFForall_body (SNFOpaque A))
-  | PNFExists T body => SNFExists_exists T (PNFProp_to_SNFExists body)
-  (*| PNFForall _ body => universalize (generalize_over (PNFProp_to_SNFExists body) 0)*)
-  | PNFForall _ body => push_forall_under_exists (PNFProp_to_SNFExists body) 0
+  | PNFExists T body => SNFExists_exists T (snf body)
+  | PNFForall _ body => push_forall_under_exists (snf body) 0
   end.
 
 Lemma SNFBody_xform_free_correct:
@@ -165,19 +138,6 @@ Proof.
     apply IHp.
 Qed.
 
-Lemma forall_exists_to_exists_forall:
-  forall T U (P : T -> U -> Prop),
-    (forall (x:T), exists (y:U), P x y) <->
-    (exists (f : T -> U), forall (x:T), P x (f x)).
-Proof.
-  intuition.
-  - apply functional_choice.
-    easy.
-  - destruct H as [f H].
-    exists (f x).
-    easy.
-Qed.
-
 Lemma universalize_forall_correct:
   forall env (P : SNFForall env) var_index vals,
     denote_snf_forall (universalize_forall P var_index) vals <->
@@ -189,15 +149,6 @@ Proof.
     setoid_rewrite IHP.
     cbn in *.
     easy.
-Qed.
-
-Lemma nth_of_insert:
-  forall env var_index (venv : Valuation (without env var_index)) (x : nth env var_index),
-    venv_nth (insert var_index x venv) var_index = x.
-Proof.
-  induction env; cbn; intros.
-  - destruct x; easy.
-  - destruct var_index; cbn in *; easy.
 Qed.
 
 Fixpoint lift_witness_left {env var_index} {struct env} : nth (functionalize_wrt env var_index) var_index -> nth env var_index :=
@@ -289,15 +240,15 @@ Proof.
     }
 Qed.
 
-Lemma PNFProp_to_SNFExists_correct:
+Lemma snf_correct:
   forall env (P : PNFProp env) v,
-    denote_pnf P v <->
-    denote_snf_exists (PNFProp_to_SNFExists P) v.
+    denote_snf_exists (snf P) v <->
+    denote_pnf P v.
 Proof.
   induction P; cbn; intros.
   - easy.
   - apply ex_iff_ex; easy.
-  - setoid_rewrite IHP.
-    setoid_rewrite (push_forall_under_exists_correct _ (PNFProp_to_SNFExists P) 0).
+  - setoid_rewrite <- IHP.
+    setoid_rewrite (push_forall_under_exists_correct _ (snf P) 0).
     easy.
 Qed.

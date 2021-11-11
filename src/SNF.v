@@ -16,29 +16,15 @@ Require Import SNFProp.
 Require Import TacticUtil.
 
 
-Definition snf {env} (P : DataProp env) : SNFExists env :=
-  PNFProp_to_SNFExists (pnf (nnf P)).
-
-Lemma snf_correct:
-  forall env (P : DataProp env) v,
-    denote P v <->
-    denote_snf_exists (snf P) v.
-Proof.
-  intros.
-  unfold snf.
-  rewrite <- PNFProp_to_SNFExists_correct.
-  rewrite pnf_correct.
-  rewrite nnf_correct.
-  reflexivity.
-Qed.
-
 Lemma to_snf:
   forall env (P : DataProp env) v,
     denote P v ->
-    denote_snf_exists (snf P) v.
+    denote_snf_exists (snf (pnf (nnf P))) v.
 Proof.
   intros.
-  rewrite <- snf_correct.
+  apply snf_correct.
+  apply pnf_correct.
+  apply nnf_correct.
   assumption.
 Qed.
 
@@ -47,10 +33,9 @@ Ltac2 snf_hyp (hypname : ident) : unit :=
   apply to_snf in $hypname;
   cbv [
     snf
-    universalize universalize_exists universalize_forall universalize_body
+    universalize_forall universalize_body
     push_forall_under_exists defunctionalize_env functionalize_wrt id
-    generalize_over SNFExists_xform_free SNFForall_xform_free SNFBody_xform_free
-    PNFProp_to_SNFExists
+    SNFForall_xform_free SNFBody_xform_free
     without
     nnf nnf' nnf_negb head tail nth venv_nth insert
     pnf pnf_conjoin pnf_conjoin_right pnf_disjoin pnf_disjoin_right

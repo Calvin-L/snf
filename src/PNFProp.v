@@ -7,6 +7,7 @@ Require Import Classical.
 Require Import Inhabited.
 Require Import Context.
 Require Import NNFProp.
+Require Import MiscFacts.
 
 
 Inductive PNFProp : TypeContext -> Type :=
@@ -38,33 +39,6 @@ Fixpoint xform_free {env env'} (p : PNFProp env) (f : Valuation env' -> Valuatio
   | PNFExists T body => fun f => PNFExists T (xform_free body (fun v => ValuationCons (head v) (f (tail v))))
   | PNFForall T body => fun f => PNFForall T (xform_free body (fun v => ValuationCons (head v) (f (tail v))))
   end f.
-
-Lemma ex_iff_ex:
-  forall T (P Q : T -> Prop),
-    (forall x, P x <-> Q x) ->
-    ex P <-> ex Q.
-Proof.
-  intuition.
-  - destruct H0 as [witness H0].
-    exists witness.
-    apply H.
-    easy.
-  - destruct H0 as [witness H0].
-    exists witness.
-    apply H.
-    easy.
-Qed.
-
-Lemma all_iff_all:
-  forall T (P Q : T -> Prop),
-    (forall x, P x <-> Q x) ->
-    all P <-> all Q.
-Proof.
-  unfold all.
-  intros.
-  setoid_rewrite H.
-  reflexivity.
-Qed.
 
 Lemma xform_free_correct:
   forall env (p : PNFProp env) env' (f : Valuation env' -> Valuation env) vals,

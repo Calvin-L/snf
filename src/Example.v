@@ -36,7 +36,7 @@ Proof.
   Fail ltac2:(snf_hyp @H).
 Abort.
 
-Lemma types_must_not_be_dependent:
+Lemma types_should_not_be_dependent:
   (forall n (v : Vector.t nat n), True) ->
   False.
 Proof.
@@ -46,7 +46,7 @@ Proof.
   Fail ltac2:(snf_hyp @H).
 Abort.
 
-Lemma types_must_not_be_dependent:
+Lemma types_can_sometimes_be_dependent:
   (exists n, forall (v : Vector.t nat n), True) ->
   False.
 Proof.

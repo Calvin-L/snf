@@ -90,12 +90,3 @@ Proof.
   intros.
   apply nnf'_correct.
 Qed.
-
-Lemma to_nnf:
-  forall env (P : DataProp env) v,
-    denote P v ->
-    denote_nnf (nnf P) v.
-Proof.
-  intros.
-  apply <- nnf_correct; easy.
-Qed.
