@@ -33,7 +33,7 @@ Ltac2 break_all () :=
     (Control.hyps ()).
 
 (*
- * Try to take an action.  If it fails, do nothing.
+ * Invert the current goal: instead of `|- P`, show `~P |- False`.
  *)
 Ltac2 convert_goal_to_false () : unit :=
   lazy_match! goal with
