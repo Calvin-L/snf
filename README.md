@@ -29,6 +29,15 @@ and [indefinite description](https://coq.inria.fr/library/Coq.Logic.IndefiniteDe
 You'll need Coq 8.14 or higher to use it.
 
 
+## Getting Started
+
+Install Coq 8.14+, then run `make`.
+
+You can mess around with the tactic in `src/Example.v`.
+
+I don't (yet) have any specific advice on how to use `snf` in another project.
+
+
 ## Why?
 
 Normal forms are incredibly important in automatic theorem proving.  If someone
