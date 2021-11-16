@@ -36,6 +36,7 @@ Definition nnf_negb (b : bool) :=
 Fixpoint nnf' {env} (P : DataProp env) (negate : bool) : NNFProp env :=
   match P with
   | Opaque A => NNFOpaque (if negate then (fun v => ~(A v)) else A)
+  | Literal b => if negate then NNFOpaque (fun _ => if b then False else True) else NNFOpaque (fun _ => if b then True else False)
   | And A B => if negate then NNFOr (nnf' A true) (nnf' B true) else NNFAnd (nnf' A false) (nnf' B false)
   | Or A B => if negate then NNFAnd (nnf' A true) (nnf' B true) else NNFOr (nnf' A false) (nnf' B false)
   | Implies A B => if negate then NNFAnd (nnf' A false) (nnf' B true) else NNFOr (nnf' A true) (nnf' B false)
@@ -56,6 +57,7 @@ Proof.
     repeat setoid_rewrite IHP1;
     repeat setoid_rewrite IHP2;
     try easy.
+    - destruct b; easy.
     - intuition; apply not_and_or; intuition.
     - split.
       + apply and_not_or.

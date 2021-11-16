@@ -19,6 +19,7 @@ Require Import SNF.TacticUtil.
 
 Inductive DataProp : TypeContext -> Type :=
   | Opaque  : forall {env}, (Valuation env -> Prop) -> DataProp env
+  | Literal : forall {env}, bool -> DataProp env
   | And     : forall {env}, DataProp env -> DataProp env -> DataProp env
   | Or      : forall {env}, DataProp env -> DataProp env -> DataProp env
   | Implies : forall {env}, DataProp env -> DataProp env -> DataProp env
@@ -30,6 +31,7 @@ Inductive DataProp : TypeContext -> Type :=
 Fixpoint denote {env : TypeContext} (P : DataProp env) : Valuation env -> Prop :=
   match P with
   | Opaque A => A
+  | Literal b => fun _ => if b then True else False
   | And A B => fun v => denote A v /\ denote B v
   | Or A B => fun v => denote A v \/ denote B v
   | Implies A B => fun v => denote A v -> denote B v
@@ -65,6 +67,8 @@ Ltac2 rec to_Valuation (type_context : constr list) (valuation : constr) : const
  *)
 Ltac2 rec lift (x : constr) (type_context : constr list) : constr :=
   lazy_match! x with
+  | True  => let env := to_TypeContext type_context in constr:(@Literal $env true)
+  | False => let env := to_TypeContext type_context in constr:(@Literal $env false)
   | ?p /\ ?q => let p' := lift p type_context in let q' := lift q type_context in constr:(And $p' $q')
   | ?p \/ ?q => let p' := lift p type_context in let q' := lift q type_context in constr:(Or $p' $q')
   | ?p <-> ?q => let p' := lift p type_context in let q' := lift q type_context in constr:(And (Implies $p' $q') (Implies $q' $p'))
