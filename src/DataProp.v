@@ -75,7 +75,7 @@ Ltac2 rec lift (x : constr) (type_context : constr list) : constr :=
   | ?p -> ?q =>
     match! Constr.type p with
     | Prop => let p' := lift p type_context in let q' := lift q type_context in constr:(Implies $p' $q')
-    | _ => let q' := lift q type_context in constr:(Forall $p $q')
+    | _ => let q' := lift q (p :: type_context) in constr:(Forall $p $q')
     end
   | ~ ?p => let p' := lift p type_context in constr:(Not $p')
   | ex ?p =>

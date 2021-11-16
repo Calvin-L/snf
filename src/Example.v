@@ -47,7 +47,8 @@ Proof.
 Abort.
 
 Lemma types_can_sometimes_be_dependent:
-  (exists n, forall (v : Vector.t nat n), True) ->
+  forall n,
+  (forall (v : Vector.t nat n), True) ->
   False.
 Proof.
   (* NOTE: dependent types can be OK if the things they depend on are skolem
