@@ -17,9 +17,6 @@ Inductive NNFProp : TypeContext -> Type :=
   | NNFForall  : forall {env} (T : Type) `{IsInhabited T}, NNFProp (TypeCons T env) -> NNFProp env
   .
 
-Definition NNFTest : NNFProp TypeEmpty :=
-  NNFForall nat (NNFOpaque (fun _ => True)).
-
 Fixpoint denote_nnf {env : TypeContext} (P : NNFProp env) : Valuation env -> Prop :=
   match P with
   | NNFOpaque A => A
