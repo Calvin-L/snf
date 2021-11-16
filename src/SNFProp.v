@@ -80,10 +80,10 @@ Fixpoint functionalize_wrt (env : TypeContext) (var_index : nat) {struct var_ind
 
 Fixpoint defunctionalize_env {env} var_index : Valuation (functionalize_wrt env var_index) -> Valuation env :=
   match var_index as N return Valuation (functionalize_wrt env N) -> Valuation env with
-  | O => id
+  | O => fun vals => vals
   | S n =>
     match env as E return Valuation (functionalize_wrt E (S n)) -> Valuation E with
-    | TypeEmpty => id
+    | TypeEmpty => fun vals => vals
     | TypeCons T rest =>
         fun vals : Valuation (functionalize_wrt (TypeCons T rest) (S n)) =>
         let x     := vals                           : Valuation (TypeCons (nth rest n -> T) (functionalize_wrt rest n)) in
@@ -156,7 +156,7 @@ Fixpoint lift_witness_left {env var_index} {struct env} : nth (functionalize_wrt
   | TypeEmpty => fun _ => tt
   | TypeCons T rest =>
     match var_index as N return nth (functionalize_wrt (TypeCons T rest) N) N -> nth (TypeCons T rest) N with
-    | O => id
+    | O => fun x => x
     | S n => @lift_witness_left rest n
     end
   end.
@@ -177,7 +177,7 @@ Fixpoint lift_witness_right {env var_index} {struct env} : nth env var_index -> 
     end
   | TypeCons T rest =>
     match var_index as N return nth (TypeCons T rest) N -> nth (functionalize_wrt (TypeCons T rest) N) N with
-    | O => id
+    | O => fun x => x
     | S n => @lift_witness_right rest n
     end
   end.
