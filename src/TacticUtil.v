@@ -6,6 +6,15 @@ Require Import Ltac2.Ltac2.
 Require Import Classical.
 
 
+Ltac2 _congruence () := ltac1:(congruence).
+Ltac2 Notation "congruence" := _congruence ().
+
+Ltac2 _intuition () := ltac1:(intuition).
+Ltac2 Notation "intuition" := _intuition ().
+
+Ltac2 _firstorder () := ltac1:(firstorder).
+Ltac2 Notation "firstorder" := _firstorder ().
+
 (*
  * `break @H` recursively destructs H until it is not a conjunction or
  * existential.

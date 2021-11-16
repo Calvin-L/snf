@@ -119,3 +119,104 @@ Ltac2 rec lift (x : constr) (type_context : constr list) : constr :=
 Ltac2 lift_hyp (hypname : ident) : unit :=
   let x := lift (Constr.type (Control.hyp hypname)) [] in
   change (denote $x ValuationEmpty) in $hypname.
+
+Definition as_literal {env} (P : DataProp env) : option bool :=
+  match P with
+  | Literal b => Some b
+  | _ => None
+  end.
+
+Fixpoint simplify {env} (P : DataProp env) {struct P} : DataProp env :=
+  match P in DataProp E return DataProp E with
+  | Opaque _ as p => p
+  | Literal _ as p => p
+  | And a b =>
+    let a' := simplify a in
+    let b' := simplify b in
+    match as_literal a', as_literal b' with
+    | Some true, _ => b'
+    | Some false, _ => Literal false
+    | _, Some true => a'
+    | _, Some false => Literal false
+    | _, _ => And a' b'
+    end
+  | Or a b =>
+    let a' := simplify a in
+    let b' := simplify b in
+    match as_literal a', as_literal b' with
+    | Some false, _ => b'
+    | Some true, _ => Literal true
+    | _, Some false => a'
+    | _, Some true => Literal true
+    | _, _ => Or a' b'
+    end
+  | Implies a b =>
+    let a' := simplify a in
+    let b' := simplify b in
+    match as_literal a', as_literal b' with
+    | Some false, _ => Literal true
+    | Some true, _ => b'
+    | _, Some false => Not a'
+    | _, Some true => Literal true
+    | _, _ => Implies a' b'
+    end
+  | Not a =>
+    let a' := simplify a in
+    match as_literal a' with
+    | Some true => Literal false
+    | Some false => Literal true
+    | None => Not a'
+    end
+  | Exists T body =>
+    let body' := simplify body in
+    match as_literal body' with
+    | Some b => Literal b
+    | None => Exists T body'
+    end
+  | Forall T body =>
+    let body' := simplify body in
+    match as_literal body' with
+    | Some b => Literal b
+    | None => Forall T body'
+    end
+  end.
+
+Lemma as_literal_correct:
+  forall env (P : DataProp env) res,
+    as_literal P = Some res ->
+    forall vals,
+      if res then denote P vals else ~ denote P vals.
+Proof.
+  destruct P; cbn; intros; Control.enter (fun () => try (fun () => discriminate)).
+  assert (b = res) by congruence.
+  subst b.
+  destruct res.
+  - constructor.
+  - exact id.
+Qed.
+
+Lemma simplify_correct:
+  forall env (P : DataProp env) vals,
+    denote (simplify P) vals <-> denote P vals.
+Proof.
+  induction P; cbn; intros;
+    repeat (match! goal with
+    | [ |- context [ as_literal (simplify ?p) ] ] =>
+      let h := Fresh.in_goal @H in
+      destruct (as_literal (simplify $p)) eqn:$h
+    | [ h : as_literal _ = Some _ |- _ ] =>
+      apply as_literal_correct with (vals := vals) in $h
+    | [ |- context [ if ?b then _ else _ ] ] =>
+      destruct $b
+    end);
+    try (fun () => firstorder).
+  - exists X.
+    apply as_literal_correct with (vals := ValuationCons X vals) in H0.
+    destruct b; firstorder.
+  - apply as_literal_correct with (vals := ValuationCons x vals) in H0.
+    destruct b; firstorder.
+  - apply as_literal_correct with (vals := ValuationCons x vals) in H0.
+    destruct b; firstorder.
+  - apply as_literal_correct with (vals := ValuationCons X vals) in H0.
+    destruct b; firstorder.
+Qed.

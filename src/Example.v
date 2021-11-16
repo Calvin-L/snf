@@ -6,7 +6,7 @@ Require Import SNF.SNF.
 
 Lemma basic_example:
   forall T `{IsInhabited T} (R : T -> T -> Prop),
-  (forall x, exists y, R x y) ->
+  (forall x, exists y, (R x y \/ False)) ->
   forall x, ~ R x x.
 Proof.
   snf.

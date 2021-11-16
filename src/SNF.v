@@ -19,12 +19,13 @@ Require Import SNF.TacticUtil.
 Lemma to_snf:
   forall env (P : DataProp env) v,
     denote P v ->
-    denote_snf_exists (snf (pnf (nnf P))) v.
+    denote_snf_exists (snf (pnf (nnf (simplify P)))) v.
 Proof.
   intros.
   apply snf_correct.
   apply pnf_correct.
   apply nnf_correct.
+  apply simplify_correct.
   assumption.
 Qed.
 
@@ -34,6 +35,7 @@ Ltac2 snf_hyp (hypname : ident) : unit :=
   cbv [
     (* basics *)
     head tail nth venv_nth insert without
+    simplify as_literal
 
     (* NNF *)
     nnf nnf' nnf_negb
