@@ -12,9 +12,9 @@
 
 Require Import Ltac2.Ltac2.
 
-Require Import Inhabited.
-Require Import Context.
-Require Import TacticUtil.
+Require Import SNF.Inhabited.
+Require Import SNF.Context.
+Require Import SNF.TacticUtil.
 
 
 Inductive DataProp : TypeContext -> Type :=

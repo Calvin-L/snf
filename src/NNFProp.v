@@ -4,9 +4,9 @@
 
 Require Import Classical.
 
-Require Import Inhabited.
-Require Import Context.
-Require Import DataProp.
+Require Import SNF.Inhabited.
+Require Import SNF.Context.
+Require Import SNF.DataProp.
 
 
 Inductive NNFProp : TypeContext -> Type :=

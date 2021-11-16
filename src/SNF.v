@@ -7,13 +7,13 @@
 
 Require Import Ltac2.Ltac2.
 
-Require Export Inhabited.
-Require Import Context.
-Require Import DataProp.
-Require Import PNFProp.
-Require Import NNFProp.
-Require Import SNFProp.
-Require Import TacticUtil.
+Require Export SNF.Inhabited.
+Require Import SNF.Context.
+Require Import SNF.DataProp.
+Require Import SNF.PNFProp.
+Require Import SNF.NNFProp.
+Require Import SNF.SNFProp.
+Require Import SNF.TacticUtil.
 
 
 Lemma to_snf:

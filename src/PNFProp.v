@@ -4,10 +4,10 @@
 
 Require Import Classical.
 
-Require Import Inhabited.
-Require Import Context.
-Require Import NNFProp.
-Require Import MiscFacts.
+Require Import SNF.Inhabited.
+Require Import SNF.Context.
+Require Import SNF.NNFProp.
+Require Import SNF.MiscFacts.
 
 
 Inductive PNFProp : TypeContext -> Type :=

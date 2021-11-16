@@ -4,10 +4,10 @@
 
 Require Import IndefiniteDescription.
 
-Require Import Inhabited.
-Require Import Context.
-Require Import PNFProp.
-Require Import MiscFacts.
+Require Import SNF.Inhabited.
+Require Import SNF.Context.
+Require Import SNF.PNFProp.
+Require Import SNF.MiscFacts.
 
 
 Inductive SNFBody : TypeContext -> Type :=

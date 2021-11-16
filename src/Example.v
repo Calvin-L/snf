@@ -1,7 +1,7 @@
 Require Import Vector.
 
-Require Import Inhabited.
-Require Import SNF.
+Require Import SNF.Inhabited.
+Require Import SNF.SNF.
 
 
 Lemma basic_example:
